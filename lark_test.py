@@ -9,7 +9,6 @@ except NameError:
 
 calc_grammar = """
     ?start: sum
-          | NAME "=" sum    -> assign_var
 
     ?sum: product
         | sum "+" product   -> add
@@ -35,54 +34,21 @@ calc_grammar = """
 @v_args(inline=True)    # Affects the signatures of the methods
 class CalculateTree(Transformer):
     # number = int
+
     def number(self, a: any) -> str:
         return f"const {str(a)}\n"
+
     def add(self, a: any, b: any) -> str:
-        ret = f""
-        if type(a) == int:
-            ret += f"const {a}\n"
-        else:
-            ret += a
-        if type(b) == int:
-            ret += f"const {b}\n"
-        else:
-            ret += b
-        return ret + "call Int:plus\n"
+        return a + b + "call Int:plus\n"
+
     def sub(self, a: any, b: any) -> str:
-        ret = f""
-        if type(a) == int:
-            ret += f"const {a}\n"
-        else:
-            ret += a
-        if type(b) == int:
-            ret += f"const {b}\n"
-        else:
-            ret += b
-        return ret + "call Int:minus\n"
+        return a + b + "call Int:minus\n"
+
     def mul(self, a: any, b: any) -> str:
-        ret = f""
-        if type(a) == int:
-            ret += f"const {a}\n"
-        else:
-            ret += a
-        if type(b) == int:
-            ret += f"const {b}\n"
-        else:
-            ret += b
-        return ret + "call Int:times\n"
+        return a + b + "call Int:times\n"
+
     def div(self, a: any, b: any) -> str:
-        ret = f""
-        if type(a) == int:
-            ret += f"const {a}\n"
-        else:
-            ret += a
-        if type(b) == int:
-            ret += f"const {b}\n"
-        else:
-            ret += b
-        return ret + "call Int:divide\n"
-
-
+        return a + b + "call Int:divide\n"
 
     def __init__(self):
         self.vars = {}
@@ -115,11 +81,9 @@ def main():
 
 
 def test():
-    print(calc("a = 6+1"))
-    print(calc("b = 1/a"))
-    print(calc("a + b - 1"))
+    print(calc("1 + 2 * 3"))
 
 
 if __name__ == '__main__':
-    test()
-    # main()
+    # test()
+    main()
