@@ -41,11 +41,11 @@ extern class_ref the_class_Int;
 extern class_ref the_class_Nothing;
 
 /* Literal constants.  */
-extern obj_ref nothing;                 // token: nothing
-extern obj_ref str_literal(char *s);    // token: "text"
-extern obj_ref lit_false;               // token: false
-extern obj_ref lit_true;                // token: true
-extern obj_ref int_literal(char *n);      // token: [0-9]+, e.g., 17
+extern obj_ref nothing;              // token: nothing
+extern obj_ref str_literal(char *s); // token: "text"
+extern obj_ref lit_false;            // token: false
+extern obj_ref lit_true;             // token: true
+extern obj_ref int_literal(char *n); // token: [0-9]+, e.g., 17
 
 /* ===============================
  * Make all the methods we might
@@ -56,7 +56,6 @@ extern obj_ref int_literal(char *n);      // token: [0-9]+, e.g., 17
  * access them.
  *================================
  */
-
 
 /* While we make all methods return obj_ref, a specific
  * object structure for each class is used for a constructor
@@ -82,24 +81,23 @@ extern void assert_is_type(obj_ref thing, class_ref expected);
  */
 
 struct class_Obj_struct;
-typedef struct class_Obj_struct* class_Obj;
+typedef struct class_Obj_struct *class_Obj;
 
 typedef struct obj_Obj_struct {
-    struct obj_header_struct header;
-    // No fields.
-} * obj_Obj;
+  struct obj_header_struct header;
+  // No fields.
+} *obj_Obj;
 
 struct class_Obj_struct {
-    struct class_header_struct header;
-    /* Method table */
-    vm_addr m_constructor;
-    vm_addr m_string;
-    vm_addr m_print;
-    vm_addr m_equals;
+  struct class_header_struct header;
+  /* Method table */
+  vm_addr m_constructor;
+  vm_addr m_string;
+  vm_addr m_print;
+  vm_addr m_equals;
 };
 
-extern  const class_ref the_class_Obj; /* Initialized in builtins.c */
-
+extern const class_ref the_class_Obj; /* Initialized in builtins.c */
 
 /* ================
  * String
@@ -111,22 +109,22 @@ extern  const class_ref the_class_Obj; /* Initialized in builtins.c */
  * ==================
  */
 struct class_String_struct;
-typedef struct class_String_struct* class_String;
+typedef struct class_String_struct *class_String;
 
 typedef struct obj_String_struct {
-    struct obj_header_struct header;
-    char *text;  // Hidden field
-} * obj_String;
+  struct obj_header_struct header;
+  char *text; // Hidden field
+} *obj_String;
 
 struct class_String_struct {
-    struct class_header_struct header;
-    /* Method table: Inherited or overridden */
-    vm_addr constructor;
-    vm_addr m_string;
-    vm_addr m_print;
-    vm_addr m_equals;
-    /* Added method */
-    vm_addr m_less;
+  struct class_header_struct header;
+  /* Method table: Inherited or overridden */
+  vm_addr constructor;
+  vm_addr m_string;
+  vm_addr m_print;
+  vm_addr m_equals;
+  /* Added method */
+  vm_addr m_less;
 };
 
 extern class_ref the_class_String;
@@ -138,7 +136,6 @@ extern class_ref the_class_String;
  */
 extern obj_ref str_literal(char *s);
 
-
 /* ================
  * Boolean
  * Fields:
@@ -149,20 +146,20 @@ extern obj_ref str_literal(char *s);
  */
 
 struct class_Boolean_struct;
-typedef struct class_Boolean_struct* class_Boolean;
+typedef struct class_Boolean_struct *class_Boolean;
 
 typedef struct obj_Boolean_struct {
-    struct obj_header_struct header;
-    int value;
-} * obj_Boolean;
+  struct obj_header_struct header;
+  int value;
+} *obj_Boolean;
 
 struct class_Boolean_struct {
-    struct class_header_struct header;
-    /* Method table: Inherited or overridden */
-    vm_addr constructor;
-    vm_addr m_string;
-    vm_addr m_print;
-    vm_addr m_equals;
+  struct class_header_struct header;
+  /* Method table: Inherited or overridden */
+  vm_addr constructor;
+  vm_addr m_string;
+  vm_addr m_print;
+  vm_addr m_equals;
 };
 
 extern class_ref the_class_Boolean;
@@ -176,7 +173,6 @@ extern class_ref the_class_Boolean;
 extern obj_ref lit_false;
 extern obj_ref lit_true;
 
-
 /* ==============
  * Nothing (really just a singleton Obj)
  * Fields: None
@@ -189,22 +185,22 @@ extern obj_ref lit_true;
  * ==============
  */
 struct class_Nothing_struct;
-typedef struct class_Nothing_struct* class_Nothing;
+typedef struct class_Nothing_struct *class_Nothing;
 
 typedef struct obj_Nothing_struct {
-    struct obj_header_struct header;
-} * obj_Nothing;
+  struct obj_header_struct header;
+} *obj_Nothing;
 
 /* I don't THINK we can ever call a method on Nothing,
  * but we'll give it a real method table just in case.
  */
 struct class_Nothing_struct {
-    struct class_header_struct header;
-    /* Method table */
-    vm_addr constructor;
-    vm_addr m_string;
-    vm_addr m_print;
-    vm_addr m_equals;
+  struct class_header_struct header;
+  /* Method table */
+  vm_addr constructor;
+  vm_addr m_string;
+  vm_addr m_print;
+  vm_addr m_equals;
 };
 
 extern class_ref the_class_Nothing;
@@ -213,7 +209,6 @@ extern class_ref the_class_Nothing;
  * called nothing
  */
 extern obj_ref nothing;
-
 
 /* ================
  * Int
@@ -231,22 +226,22 @@ extern obj_ref nothing;
  */
 
 struct class_Int_struct;
-typedef struct class_Int_struct* class_Int;
+typedef struct class_Int_struct *class_Int;
 
 typedef struct obj_Int_struct {
-    struct obj_header_struct header;
-    int value;  // Hidden field
-} * obj_Int;
+  struct obj_header_struct header;
+  int value; // Hidden field
+} *obj_Int;
 
 struct class_Int_struct {
-    /* Method table: Inherited or overridden */
-    vm_addr constructor;
-    vm_addr m_string;
-    vm_addr m_print;
-    vm_addr m_equals;
-    /* Added methods */
-    vm_addr m_less;
-    vm_addr m_plus;
+  /* Method table: Inherited or overridden */
+  vm_addr constructor;
+  vm_addr m_string;
+  vm_addr m_print;
+  vm_addr m_equals;
+  /* Added methods */
+  vm_addr m_less;
+  vm_addr m_plus;
 };
 
 extern class_ref the_class_Int;
@@ -254,11 +249,11 @@ extern class_ref the_class_Int;
 /* Integer and String objects may be created by built-in methods,
  * and literals may be created by the loader.
  */
-extern int int_literal_const(char *n_lit);  // Index to constants table
-extern obj_ref new_int(int n);  // An object reference, not a literal
+extern int int_literal_const(char *n_lit); // Index to constants table
+extern obj_ref new_int(int n);             // An object reference, not a literal
 
 extern int str_literal_const(char *s_lit); // Index to constants table
-extern obj_ref new_string(char *s);  // An object reference, not a literal
+extern obj_ref new_string(char *s);        // An object reference, not a literal
 
 /* Debugging - health checks */
 extern void class_health_check(class_ref clazz);
@@ -266,4 +261,4 @@ extern void class_health_check(class_ref clazz);
 /* Purely debugging ... stop when we corrupt a built-in class structure */
 extern void health_check_builtins();
 
-#endif //TINY_VM_BUILTINS_H
+#endif // TINY_VM_BUILTINS_H
