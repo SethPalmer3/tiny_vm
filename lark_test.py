@@ -8,19 +8,22 @@ except NameError:
 
 
 calc_grammar = """
-    ?start: sum
+    ?start: assignment
+
+    ?assignment: sum
+        | NAME ":" NAME "=" sum ";"  -> assign_var
 
     ?sum: product
-        | sum "+" product   -> add
-        | sum "-" product   -> sub
+        | sum "+" product        -> add
+        | sum "-" product        -> sub
 
     ?product: atom
-        | product "*" atom  -> mul
-        | product "/" atom  -> div
+        | product "*" atom       -> mul
+        | product "/" atom       -> div
 
-    ?atom: NUMBER           -> number
-         | "-" atom         -> neg
-         | NAME             -> var
+    ?atom: NUMBER                -> number
+         | "-" atom              -> neg
+         | NAME                  -> var
          | "(" sum ")"
 
     %import common.CNAME -> NAME
@@ -29,7 +32,41 @@ calc_grammar = """
 
     %ignore WS_INLINE
 """
+@v_args(inline=True)    # Affects the signatures of the methods
+class QuackTree(Transformer):
+    # number = int
 
+    def __init__(self):
+        self.vars = {}
+        self.var_types = {}
+    
+    def number(self, a: any) -> str:
+        return f"const {str(a)}\n"
+
+    def add(self, a: any, b: any) -> str:
+        return a + b + "call Int:plus\n"
+
+    def sub(self, a: any, b: any) -> str:
+        return a + b + "call Int:minus\n"
+
+    def mul(self, a: any, b: any) -> str:
+        return a + b + "call Int:times\n"
+
+    def div(self, a: any, b: any) -> str:
+        return a + b + "call Int:divide\n"
+
+    def assign_var(self, name, var_type, value):
+        self.vars[name] = value
+        self.var_types[name] = var_type
+
+        return str(value) + f"store {name} {var_type}\n"
+
+    def var(self, name):
+        # return self.vars[name]
+        if name in self.vars.keys():
+            return f"load {name} {self.var_types[name]}\n"
+        else:
+            raise Exception("Variable not found: %s" % name)
 
 @v_args(inline=True)    # Affects the signatures of the methods
 class CalculateTree(Transformer):
@@ -67,7 +104,7 @@ class CalculateTree(Transformer):
 
 
 
-calc_parser = Lark(calc_grammar, parser='lalr', transformer=CalculateTree())
+calc_parser = Lark(calc_grammar, parser='lalr', transformer=QuackTree())
 calc = calc_parser.parse
 
 

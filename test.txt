@@ -1,0 +1,3 @@
+x: Int = 5;
+y: Int = 6;
+z: Int = y + x;
