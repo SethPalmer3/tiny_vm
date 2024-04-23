@@ -105,6 +105,7 @@ class CalculateTree(Transformer):
 
 
 calc_parser = Lark(calc_grammar, parser='lalr', transformer=QuackTree())
+calc_parser_t = Lark(calc_grammar, start='start')
 calc = calc_parser.parse
 
 
@@ -118,9 +119,10 @@ def main():
 
 
 def test():
-    print(calc("1 + 2 * 3"))
+    text = "1 + 2 * 6"
+    print(calc_parser_t.parse(text))
 
 
 if __name__ == '__main__':
-    # test()
-    main()
+    test()
+    # main()
