@@ -1,0 +1,70 @@
+//
+// Moved grammar out of the parser file because it was
+// getting unwieldy.  This is still a stub, but I've added some more
+// pieces to illustrate how if/elif/elif/else can be flatted down into
+// nested if/else (including the potential else to be omitted)
+//
+// One advantage of grammar in a separate file is that Lark error messages
+// citing line# will correspond to actual line#.
+//
+
+?start: program
+
+program: classes block
+classes: clazz*
+
+clazz: _class_sig  "{" methods block "}"
+_class_sig: "class" name "("  formals ")" [ "extends" name ]
+methods: method*
+
+formals: [formal ("," formal)*]
+formal: name ":" name
+
+?constructor: block
+
+name: IDENT -> ident
+
+block: _stmt*
+
+_stmt: ifstmt
+      | assignment ";"
+      | expr ";"
+      | call ";"
+
+assignment: formal "=" expr 
+
+
+call: name "(" [expr ("," expr)*] ")" 
+
+
+// An 'if' statement may have zero or more elifs and
+// zero or one else
+ifstmt: "if" _cond  _curlyblock otherwise
+_curlyblock: "{" block "}"
+otherwise:  -> block   // This creates an annoying empty block
+   | "else" _curlyblock -> elseblock
+   | "elif" _cond _curlyblock otherwise -> ifstmt
+
+_cond: expr
+expr: ident -> variable_ref
+   | NUMBER
+   | expr "+" product -> add
+   | expr "-" product -> sub
+   | product
+   | call
+
+?product: expr "*" expr -> mul
+      | expr "/" expr -> div
+      | expr
+
+ident: IDENT
+
+method: "def" name "(" formals ")" returns "{" block "}"
+returns: (":"  name)?
+
+IDENT: /[_a-zA-Z][_a-zA-Z0-9]*/
+
+
+%import common.WS
+%import common.NUMBER
+%ignore WS
