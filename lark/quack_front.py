@@ -166,14 +166,17 @@ class BlockNode(ASTNode):
 
 class AssignmentNode(ASTNode):
     """Placeholder ... not defined in grammar yet"""
-    def __init__(self, formal: ASTNode, rhs:ASTNode):
+    def __init__(self, name: str, assign_type: str, rhs:ASTNode):
 
-        self.lhs = formal
+        self.name = name
+        self.assign_type = assign_type
         self.rhs = rhs
         self.children = []
 
     def __str__(self):
-        return f"{str( self.lhs )} = {str( self.rhs )}"
+        if self.assign_type is None:
+            return f"{self.name} = {self.rhs.__str__()}"
+        return f"{self.name}: {self.assign_type} = {self.rhs.__str__()}"
 
 
 class ExprNode(ASTNode):
@@ -319,8 +322,8 @@ class ASTBuilder(Transformer):
     def assignment(self, e) -> ASTNode:
         log.debug("->assignment")
 
-        lhs, rhs = e
-        return AssignmentNode(lhs, rhs)
+        
+        return AssignmentNode(e[0], e[1], e[2:])
 
     def ifstmt(self, e) -> ASTNode:
         log.debug("->ifstmt")

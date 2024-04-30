@@ -31,7 +31,7 @@ _stmt: ifstmt
       | expr ";"
       | call ";"
 
-assignment: formal "=" expr 
+assignment: name [":" name] "=" expr 
 
 
 call: name "(" [expr ("," expr)*] ")" 
@@ -46,16 +46,19 @@ otherwise:  -> block   // This creates an annoying empty block
    | "elif" _cond _curlyblock otherwise -> ifstmt
 
 _cond: expr
-expr: ident -> variable_ref
-   | NUMBER
+?expr: product
    | expr "+" product -> add
    | expr "-" product -> sub
-   | product
-   | call
 
-?product: expr "*" expr -> mul
-      | expr "/" expr -> div
-      | expr
+?product: elem
+      | product "*" elem -> mul
+      | product "/" elem -> div
+      | elem
+
+?elem: ident -> variable_ref
+      | NUMBER
+      | ESCAPED_STRING
+      | call
 
 ident: IDENT
 
@@ -67,4 +70,5 @@ IDENT: /[_a-zA-Z][_a-zA-Z0-9]*/
 
 %import common.WS
 %import common.NUMBER
+%import common.ESCAPED_STRING
 %ignore WS
