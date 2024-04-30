@@ -322,8 +322,8 @@ class ASTBuilder(Transformer):
     def assignment(self, e) -> ASTNode:
         log.debug("->assignment")
 
-        
-        return AssignmentNode(e[0], e[1], e[2:])
+        name, assign_type, rhs = e
+        return AssignmentNode(name, assign_type, rhs)
 
     def ifstmt(self, e) -> ASTNode:
         log.debug("->ifstmt")
