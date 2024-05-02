@@ -8,6 +8,8 @@ import sys
 from typing import List,  Callable
 
 import logging
+
+from lark.tree import ParseTree
 logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
@@ -95,14 +97,12 @@ class ClassNode(ASTNode):
 
     def __str__(self):
         formals_str = ", ".join([str(fm) for fm in self.constructor.formals])
-        methods_str = "\n".join([f"{method}\n" for method in self.methods])
-        return f"""
-        class {self.name}({formals_str}){LB}
-        {methods_str}
-        /* statements as a constructor */
-        {self.constructor}
-        {RB} /* end class {self.name} */
-        """
+        methods_str = "\n".join([f"\t{method.__str__()}" for method in self.methods])
+        return f"""class {self.name}({formals_str}){LB}
+{methods_str}
+    /* statements as a constructor */
+    {self.constructor}
+{RB} /* end class {self.name} */"""
 
     # Example walk to gather method signatures
     def method_table_visit(self, visit_state: dict):
@@ -130,11 +130,10 @@ class MethodNode(ASTNode):
     def __str__(self):
         formals_str = ", ".join([str(fm) for fm in self.formals])
         return f"""
-        /* method */ 
-        def {self.name}({formals_str}): {self.returns} {LB}
-        {self.body}
-        {RB} /* End of method {self.name} */ 
-        """
+    /* method */ 
+    def {self.name}({formals_str}): {self.returns} {LB}
+    {self.body}
+    {RB} /* End of method {self.name} */"""
 
     # Add this method to the symbol table
     def method_table_visit(self, visit_state: dict):
@@ -161,7 +160,7 @@ class BlockNode(ASTNode):
         self.children = stmts
 
     def __str__(self):
-        return "".join([str(stmt) + ";\n" for stmt in self.stmts])
+        return "\n".join([f"\t{str(stmt)};" for stmt in self.stmts])
 
 
 class AssignmentNode(ASTNode):
@@ -225,12 +224,12 @@ class IfStmtNode(ASTNode):
         self.children = [cond, thenpart, elsepart]
 
     def __str__(self):
-        return f"""if {self.cond} {LB}\n
-                {self.thenpart}
-             {RB} else {LB}
-                {self.elsepart} {LB}
-            {RB}
-            """
+        return f"""
+    if {self.cond} {LB}
+    {self.thenpart}
+    {RB} else {LB}
+    {self.elsepart}
+    {RB}"""
 
 class CondNode(ASTNode):
     """Boolean condition. It can evaluate to jumps,
@@ -266,7 +265,7 @@ class ASTBuilder(Transformer):
     def method(self, e):
         log.debug("->method")
         name, formals, returns, body = e
-        return MethodNode(name, formals, returns, body)
+        return MethodNode(name, formals, returns[0], body)
 
     def call(self, e):
         log.debug("->method call")
@@ -347,12 +346,16 @@ class ASTBuilder(Transformer):
 def method_table_walk(node: ASTNode, visit_state: dict):
         node.method_table_visit(visit_state)
 
+
+def generate_ast(input_text: str, grammar: str, ast_builder: Transformer) -> tuple[ ASTNode, ParseTree ]:
+    quack_parser = Lark(grammar)  # Create parser
+    tree = quack_parser.parse(input_text) # Generate the parse tree from input_text and given grammar
+    return ast_builder.transform(tree), tree  # Transform tree to the AST
+
 def main():
     args = cli()
-    quack_parser = Lark(open("qklib/quack_grammar.txt", "r"))
     text = "".join(args.source.readlines())
-    tree = quack_parser.parse(text)
-    print(tree)
+    ( ast, tree ) = generate_ast(text, open("./qklib/quack_grammar.txt", "r").read(), ASTBuilder())
     print(tree.pretty("   "))
     ast: ASTNode = ASTBuilder().transform(tree)
     print(ast)
