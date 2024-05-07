@@ -1,5 +1,6 @@
 """Front end for Quack"""
 
+from os import replace
 from lark import Lark, Transformer
 import argparse
 import json
@@ -13,6 +14,24 @@ from lark.tree import ParseTree
 logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+
+ZERO_SPACE_CHAR = '\u200B'
+TAB_CHAR = '  '
+
+def append_zero_size_char(input: str) -> str:
+    mod_str = input
+    i = 0
+    while i < mod_str.__len__() - 1:
+        if mod_str[i] == '\u200B' and mod_str[i+1] != '\u200B':
+            first_half = mod_str[0:i+1]
+            second_half = mod_str[i+1:]
+            mod_str = first_half + '\u200B' + second_half
+            i += 1
+        i += 1
+    return mod_str
+
+def remove_zero_size_char(input: str) -> str:
+    return input.replace('\u200B', '')
 
 def cli():
     cli_parser = argparse.ArgumentParser()
@@ -81,7 +100,7 @@ class ProgramNode(ASTNode):
         self.children = self.classes
 
     def __str__(self) -> str:
-        return "\n".join([str(c) for c in self.classes])
+        return "\n".join([str(c).replace(ZERO_SPACE_CHAR, TAB_CHAR) for c in self.classes]) + "\n"
 
 
 class ClassNode(ASTNode):
@@ -97,12 +116,13 @@ class ClassNode(ASTNode):
 
     def __str__(self):
         formals_str = ", ".join([str(fm) for fm in self.constructor.formals])
-        methods_str = "\n".join([f"\t{method.__str__()}" for method in self.methods])
-        return f"""class {self.name}({formals_str}){LB}
-{methods_str}
-    /* statements as a constructor */
-    {self.constructor}
+        methods_str = "\n".join([f"{method.__str__()}" for method in self.methods])
+        full_ret = f"""class {self.name}({formals_str}){LB}
+{append_zero_size_char(methods_str)}
+{ZERO_SPACE_CHAR}/* statements as a constructor */
+{append_zero_size_char(self.constructor.__str__())}
 {RB} /* end class {self.name} */"""
+        return full_ret
 
     # Example walk to gather method signatures
     def method_table_visit(self, visit_state: dict):
@@ -116,8 +136,6 @@ class ClassNode(ASTNode):
             "methods": {}
         }
 
-
-
 class MethodNode(ASTNode):
     def __init__(self, name: str, formals: List[ASTNode],
                  returns: str, body: ASTNode):
@@ -129,11 +147,12 @@ class MethodNode(ASTNode):
 
     def __str__(self):
         formals_str = ", ".join([str(fm) for fm in self.formals])
-        return f"""
-    /* method */ 
-    def {self.name}({formals_str}): {self.returns} {LB}
-    {self.body}
-    {RB} /* End of method {self.name} */"""
+        full_ret =  f"""
+{ZERO_SPACE_CHAR}/* method */ 
+{ZERO_SPACE_CHAR}def {self.name}({formals_str}): {self.returns} {LB}
+{append_zero_size_char(self.body.__str__())}
+{ZERO_SPACE_CHAR}{RB} /* End of method {self.name} */"""
+        return full_ret
 
     # Add this method to the symbol table
     def method_table_visit(self, visit_state: dict):
@@ -160,7 +179,7 @@ class BlockNode(ASTNode):
         self.children = stmts
 
     def __str__(self):
-        return "\n".join([f"\t{str(stmt)};" for stmt in self.stmts])
+        return append_zero_size_char("\n".join([f"{str(stmt)};" for stmt in self.stmts]))
 
 
 class AssignmentNode(ASTNode):
@@ -174,8 +193,8 @@ class AssignmentNode(ASTNode):
 
     def __str__(self):
         if self.assign_type is None:
-            return f"{self.name} = {self.rhs.__str__()}"
-        return f"{self.name}: {self.assign_type} = {self.rhs.__str__()}"
+            return f"{ZERO_SPACE_CHAR}{self.name} = {remove_zero_size_char(self.rhs.__str__())}"
+        return f"{ZERO_SPACE_CHAR}{self.name}: {self.assign_type} = {remove_zero_size_char(self.rhs.__str__())}"
 
 
 class ExprNode(ASTNode):
@@ -185,7 +204,7 @@ class ExprNode(ASTNode):
         self.children = [e]
 
     def __str__(self):
-        return str(self.e)
+        return ZERO_SPACE_CHAR + str(self.e)
 
 class MethodCallNode(ASTNode):
     """Node for calling a method"""
@@ -194,9 +213,9 @@ class MethodCallNode(ASTNode):
         self.params = params
         self.children = params
     def __str__(self) -> str:
-        ret_str = f"{self.name}("
+        ret_str = f"{ZERO_SPACE_CHAR}{self.name}("
         for i in range(len(self.params)):
-            ret_str += str(self.params[i])
+            ret_str += remove_zero_size_char(self.params[i].__str__())
             if i < len(self.params) - 1:
                 ret_str += ", "
         return ret_str + ")"
@@ -211,7 +230,7 @@ class VariableRefNode(ASTNode):
         self.children = []
 
     def __str__(self):
-        return self.name
+        return ZERO_SPACE_CHAR + self.name
 
 class IfStmtNode(ASTNode):
     def __init__(self,
@@ -225,11 +244,11 @@ class IfStmtNode(ASTNode):
 
     def __str__(self):
         return f"""
-    if {self.cond} {LB}
-    {self.thenpart}
-    {RB} else {LB}
-    {self.elsepart}
-    {RB}"""
+{ZERO_SPACE_CHAR}if {remove_zero_size_char(self.cond.__str__())} {LB}
+{append_zero_size_char(self.thenpart.__str__())}
+{ZERO_SPACE_CHAR}{RB} else {LB}
+{append_zero_size_char(self.elsepart.__str__())}
+{ZERO_SPACE_CHAR}{RB}"""
 
 class CondNode(ASTNode):
     """Boolean condition. It can evaluate to jumps,
@@ -240,8 +259,6 @@ class CondNode(ASTNode):
 
     def __str__(self):
         return f"{self.cond}"
-
-
 
 class ASTBuilder(Transformer):
     """Translate Lark tree into my AST structure"""
