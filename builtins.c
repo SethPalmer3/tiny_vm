@@ -351,7 +351,7 @@ vm_Word method_Boolean_string[] = {{.instr = vm_op_enter},
 
 /* The Boolean Class (a singleton) */
 struct class_struct the_class_Boolean_struct = {
-    .header = {.class_name = "Boolean",
+    .header = {.class_name = "Bool",
                .healthy_class_tag = HEALTHY,
                .super = the_class_Obj,
                .n_fields = 0,
@@ -551,6 +551,28 @@ vm_Word method_Int_less[] = {{.instr = vm_op_enter},
                              {.instr = vm_op_return},
                              {.intval = 1}};
 
+/* less (new native_method)  */
+obj_ref native_Int_greater(void) {
+  obj_ref this = vm_fp->obj;
+  assert_is_type(this, the_class_Int);
+  obj_Int this_int = (obj_Int)this;
+  obj_ref other = (vm_fp - 1)->obj;
+  assert_is_type(other, the_class_Int);
+  obj_Int other_int = (obj_Int)other;
+  log_debug("Comparing integer values for order: %d > %d", this_int->value,
+            other_int->value);
+  if (this_int->value > other_int->value) {
+    return lit_true;
+  } else {
+    return lit_false;
+  }
+}
+
+vm_Word method_Int_greater[] = {{.instr = vm_op_enter},
+                                {.instr = vm_op_call_native},
+                                {.native = native_Int_greater},
+                                {.instr = vm_op_return},
+                                {.intval = 1}};
 /* Int:plus (new native_method) */
 obj_ref native_Int_plus(void) {
   obj_ref this = vm_fp->obj;
@@ -647,6 +669,7 @@ struct class_struct the_class_Int_struct = {
         method_Obj_print,       // PRINT
         method_Int_equals,      // EQUALS
         method_Int_less,        // LESS
+        method_Int_greater,     // GREATER
         method_Int_plus,        // PLUS
         method_Int_minus,       // MINUS
         method_Int_times,       // TIMES
