@@ -1,2 +1,0 @@
-x: Int = 13 + y;
-z: Int = "Hello" + 6;
